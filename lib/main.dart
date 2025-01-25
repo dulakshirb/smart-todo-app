@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_todo_app/screens/auth/auth_screen.dart';
 import 'package:smart_todo_app/screens/main/home_screen.dart';
-import 'package:smart_todo_app/screens/main/profile_screen.dart';
+import 'package:smart_todo_app/utils/colors.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -26,16 +26,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Smart To-Do App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
       ),
-      initialRoute: '/auth',
-      routes: {
-        '/auth': (context) => AuthScreen(),
-        '/home': (context) => HomeScreen(),
-        '/profile': (context) => ProfileScreen(),
-      },
       home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snap) {
