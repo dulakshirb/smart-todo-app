@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "704792761684",
+    "project_id": "smart-todo-app-a3365",
+    "storage_bucket": "smart-todo-app-a3365.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:704792761684:android:b5a7c4ec0928f5b92364c1",
+        "android_client_info": {
+          "package_name": "com.example.smart_todo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIEdMwVjpz7ayOLpl0i4Umgo8HAsY5HRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
