@@ -25,29 +25,24 @@ class _SigninScreenState extends State<SigninScreen> {
     super.dispose();
   }
 
-  // Login form submission
-  Future<void> _handleLogin(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      final user = await AuthService()
-          .signInWithEmail(_emailController.text, _passwordController.text);
+    setState(() => _isLoading = true);
 
-      setState(() {
-        _isLoading = false;
-      });
+    final user = await AuthService()
+        .signInWithEmail(_emailController.text, _passwordController.text);
 
-      if (user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login failed. Please check your credentials.'),
-          ),
-        );
-      }
+    setState(() => _isLoading = false);
+
+    if (user != null) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login failed. Please check your credentials.'),
+        ),
+      );
     }
   }
 
@@ -56,36 +51,34 @@ class _SigninScreenState extends State<SigninScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              CustomTextFieldInput(
-                controller: _emailController,
-                icon: Icons.email,
-                validator: Validators.validateEmail,
-                hintText: 'abc@yourcompany.com',
-              ),
-              CustomTextFieldInput(
-                controller: _passwordController,
-                icon: Icons.key,
-                validator: Validators.validatePassword,
-                isPass: true,
-                hintText: 'Password',
-              ),
-              _isLoading
-                  ? Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: const CircularProgressIndicator(
-                        color: primaryColor,
-                      ),
-                    )
-                  : CustomButton(
-                      onTap: () {
-                        _handleLogin(context);
-                      },
-                      buttonText: 'Login'),
-            ],
-          )),
+        key: _formKey,
+        child: Column(
+          children: [
+            CustomTextFieldInput(
+              controller: _emailController,
+              icon: Icons.email,
+              validator: Validators.validateEmail,
+              hintText: 'abc@yourcompany.com',
+            ),
+            CustomTextFieldInput(
+              controller: _passwordController,
+              icon: Icons.key,
+              validator: Validators.validatePassword,
+              isPass: true,
+              hintText: 'Password',
+            ),
+            _isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: CircularProgressIndicator(color: primaryColor),
+                  )
+                : CustomButton(
+                    onTap: _handleLogin,
+                    buttonText: 'Login',
+                  ),
+          ],
+        ),
+      ),
     );
   }
 }

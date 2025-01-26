@@ -14,49 +14,29 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // List of screens
   final List<Widget> _screens = [
-    HomeContentScreen(),
-    ProfileScreen(),
+    const HomeContentScreen(),
+    const ProfileScreen(),
   ];
 
-  // List of app bar titles
-  final List<String> _appBarTitles = [
-    'Home',
-    'Profile',
-  ];
+  final List<String> _appBarTitles = ['Home', 'Profile'];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_appBarTitles[_selectedIndex]),
-      ),
+      appBar: AppBar(title: Text(_appBarTitles[_selectedIndex])),
       drawer: CustomDrawer(onDrawerItemSelected: _onItemTapped),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(
-                child: _screens[_selectedIndex],
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: secondaryColor,
-        items: const <BottomNavigationBarItem>[
+        selectedItemColor: secondaryColor,
+        unselectedItemColor: primaryColor,
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',

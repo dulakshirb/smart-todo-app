@@ -5,26 +5,22 @@ import 'package:smart_todo_app/models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Get current user
   Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (doc.exists) {
-        return UserModel.fromMap(doc.data()!, doc.id);
-      }
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      return doc.exists ? UserModel.fromMap(doc.data()!, doc.id) : null;
     }
     return null;
   }
 
-  // Sign in with email and password
+  // Sign in with email
   Future<User?> signInWithEmail(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      final result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
       return result.user;
     } catch (e) {
@@ -33,14 +29,13 @@ class AuthService {
     }
   }
 
-  // Sign up with name, email and password
+  // Sign up with email
   Future<User?> signUpWithEmail(
       String name, String email, String password) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
+      final result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
 
-      // Save user profile with username and default profile picture
       if (result.user != null) {
         await _saveUserProfile(
           result.user!.uid,
@@ -58,7 +53,7 @@ class AuthService {
   }
 
   // Sign in with Google
-  Future<User?> signInWithGoogle() async {
+  Future<UserModel?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication googleAuth =
@@ -67,20 +62,28 @@ class AuthService {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      UserCredential result = await _auth.signInWithCredential(credential);
-
-      // Fetch Google profile picture
+      final result = await _auth.signInWithCredential(credential);
       final user = result.user;
-      if (user != null) {
-        await _saveUserProfile(
-          user.uid,
-          user.displayName ?? 'Anonymous',
-          user.email!,
-          user.photoURL,
-        );
-      }
 
-      return user;
+      if (user != null) {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+
+        if (!doc.exists) {
+          await _saveUserProfile(
+            user.uid,
+            user.displayName ?? 'Anonymous',
+            user.email!,
+            user.photoURL,
+          );
+        }
+
+        final updatedDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+        return updatedDoc.exists
+            ? UserModel.fromMap(updatedDoc.data()!, updatedDoc.id)
+            : null;
+      }
+      return null;
     } catch (e) {
       print(e);
       return null;
@@ -96,14 +99,33 @@ class AuthService {
       email: email,
       profileImageUrl: profileImageUrl,
     );
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .set(user.toMap());
+    await _firestore.collection('users').doc(userId).set(user.toMap());
   }
 
   // Sign out
-  Future<void> signOut() async {
-    await _auth.signOut();
+  Future<void> signOut() async => await _auth.signOut();
+
+  // Update profile
+  Future<void> updateProfile(UserModel user) async {
+    try {
+      await _firestore.collection('users').doc(user.id).update(user.toMap());
+    } catch (e) {
+      print('Error updating profile: $e');
+      rethrow;
+    }
+  }
+
+  // Delete user from Firestore and Firebase Auth
+  Future<void> deleteUser() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).delete();
+        await user.delete();
+      }
+    } catch (e) {
+      print('Error deleting user: $e');
+      rethrow;
+    }
   }
 }

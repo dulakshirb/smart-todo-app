@@ -2,29 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:smart_todo_app/utils/colors.dart';
 
 class CustomButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final String buttonText;
-  const CustomButton(
-      {super.key, required this.onTap, required this.buttonText});
+  final Color? backgroundColor;
+  final Color? textColor;
+
+  const CustomButton({
+    super.key,
+    required this.onTap,
+    required this.buttonText,
+    this.backgroundColor,
+    this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.all(20),
+    final isEnabled = onTap != null;
+    final buttonColor =
+        isEnabled ? backgroundColor ?? primaryColor : Colors.grey;
+    final textStyle = TextStyle(
+      color: isEnabled
+          ? textColor ?? Colors.white
+          : const Color.fromARGB(126, 255, 255, 255),
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: InkWell(
+        onTap: onTap,
         child: Container(
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: ShapeDecoration(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-              color: primaryColor),
-          child: Text(buttonText,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            color: buttonColor,
+          ),
+          child: Text(buttonText, style: textStyle),
         ),
       ),
     );

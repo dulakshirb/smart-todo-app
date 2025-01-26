@@ -27,20 +27,15 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  // Signup form submission
-  Future<void> _handleSignup(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
+  Future<void> _handleSignup() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
 
     final user = await AuthService().signUpWithEmail(
         _nameController.text, _emailController.text, _passwordController.text);
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
 
     if (user != null) {
       Navigator.pushReplacementNamed(context, '/home');
@@ -58,41 +53,40 @@ class _SignupScreenState extends State<SignupScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              CustomTextFieldInput(
-                  controller: _nameController,
-                  hintText: 'John Doe',
-                  icon: Icons.person,
-                  validator: Validators.validateName),
-              CustomTextFieldInput(
-                controller: _emailController,
-                icon: Icons.email,
-                validator: Validators.validateEmail,
-                hintText: 'abc@yourcompany.com',
-              ),
-              CustomTextFieldInput(
-                controller: _passwordController,
-                icon: Icons.key,
-                validator: Validators.validatePassword,
-                isPass: true,
-                hintText: 'Password',
-              ),
-              _isLoading
-                  ? Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: const CircularProgressIndicator(
-                        color: primaryColor,
-                      ),
-                    )
-                  : CustomButton(
-                      onTap: () {
-                        _handleSignup(context);
-                      },
-                      buttonText: 'Sign Up'),
-            ],
-          )),
+        key: _formKey,
+        child: Column(
+          children: [
+            CustomTextFieldInput(
+              controller: _nameController,
+              hintText: 'John Doe',
+              icon: Icons.person,
+              validator: Validators.validateName,
+            ),
+            CustomTextFieldInput(
+              controller: _emailController,
+              icon: Icons.email,
+              validator: Validators.validateEmail,
+              hintText: 'abc@yourcompany.com',
+            ),
+            CustomTextFieldInput(
+              controller: _passwordController,
+              icon: Icons.key,
+              validator: Validators.validatePassword,
+              isPass: true,
+              hintText: 'Password',
+            ),
+            _isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: CircularProgressIndicator(color: primaryColor),
+                  )
+                : CustomButton(
+                    onTap: _handleSignup,
+                    buttonText: 'Sign Up',
+                  ),
+          ],
+        ),
+      ),
     );
   }
 }
