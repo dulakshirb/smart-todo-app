@@ -16,7 +16,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CategoryProvider>(context, listen: false).loadCategories();
     });
@@ -52,6 +51,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Icon(category.categoryIcon,
+                            color: Colors.white, size: 50),
+                        SizedBox(height: 10),
                         Text(
                           category.categoryName,
                           style: TextStyle(
@@ -61,7 +63,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           ),
                         ),
                         Text(
-                          '20 todos',
+                          '20 todos', // Placeholder for todo count
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.white,
@@ -96,6 +98,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         Provider.of<CategoryProvider>(context, listen: false);
     TextEditingController categoryNameController = TextEditingController();
     Color selectedColor = primaryColor;
+    IconData selectedIcon = Icons.category; // Default icon
 
     showDialog(
       context: context,
@@ -131,6 +134,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   categoryProvider.addCategory(
                     categoryNameController.text,
                     selectedColor,
+                    selectedIcon,
                   );
                   Navigator.pop(context);
                 }
@@ -185,6 +189,43 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         if (newColor != null) {
                           setState(() {
                             selectedColor = newColor;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Select Icon:',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                    SizedBox(width: 15),
+                    DropdownButton<IconData>(
+                      elevation: 0,
+                      underline: Container(),
+                      value: selectedIcon,
+                      dropdownColor: primaryColor,
+                      items: [
+                        Icons.category,
+                        Icons.work,
+                        Icons.home,
+                        Icons.school,
+                        Icons.shopping_cart,
+                      ].map((icon) {
+                        return DropdownMenuItem<IconData>(
+                          value: icon,
+                          child: Icon(icon, color: Colors.white),
+                        );
+                      }).toList(),
+                      onChanged: (IconData? newIcon) {
+                        if (newIcon != null) {
+                          setState(() {
+                            selectedIcon = newIcon;
                           });
                         }
                       },

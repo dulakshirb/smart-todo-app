@@ -6,11 +6,13 @@ class CategoryModel {
   String id;
   String categoryName;
   Color categoryColor;
+  IconData categoryIcon;
 
   CategoryModel({
     required this.id,
     required this.categoryName,
     required this.categoryColor,
+    required this.categoryIcon,
   });
 
   factory CategoryModel.fromFirestore(DocumentSnapshot doc) {
@@ -19,6 +21,8 @@ class CategoryModel {
       id: doc.id,
       categoryName: data['categoryName'] ?? 'Uncategorized',
       categoryColor: Color(data['categoryColor'] ?? primaryColor),
+      categoryIcon: IconData(data['categoryIcon'] ?? Icons.category,
+          fontFamily: 'MaterialIcons'),
     );
   }
 
@@ -26,6 +30,7 @@ class CategoryModel {
     return {
       'categoryName': categoryName,
       'categoryColor': categoryColor.value,
+      'categoryIcon': categoryIcon.codePoint
     };
   }
 }

@@ -8,7 +8,8 @@ class CategoryService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Add a new category
-  Future<void> addCategory(String categoryName, Color categoryColor) async {
+  Future<void> addCategory(
+      String categoryName, Color categoryColor, IconData categoryIcon) async {
     final user = _auth.currentUser;
     if (user != null) {
       await _firestore
@@ -18,6 +19,7 @@ class CategoryService {
           .add({
         'categoryName': categoryName,
         'categoryColor': categoryColor.value,
+        'categoryIcon': categoryIcon.codePoint
       });
     }
   }
