@@ -36,6 +36,18 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateCategory(String categoryId, String categoryName,
+      Color categoryColor, IconData categoryIcon) async {
+    await _categoryService.updateCategory(
+      categoryId,
+      categoryName,
+      categoryColor,
+      categoryIcon,
+    );
+    await loadCategories();
+    notifyListeners();
+  }
+
   Future<void> deleteCategory(String categoryId) async {
     await _categoryService.deleteCategory(categoryId);
     await loadCategories();

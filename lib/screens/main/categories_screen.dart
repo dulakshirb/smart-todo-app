@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_todo_app/models/category_model.dart';
 import 'package:smart_todo_app/providers/category_provider.dart';
 import 'package:smart_todo_app/utils/colors.dart';
 import 'package:smart_todo_app/utils/validators.dart';
@@ -13,6 +14,31 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  static final List<Color> colorOptions = [
+    primaryColor,
+    Colors.red,
+    Colors.green,
+    Colors.blue,
+    Colors.deepOrange,
+    Colors.purple,
+  ];
+
+  static final List<IconData> iconOptions = [
+    Icons.category,
+    Icons.work,
+    Icons.home,
+    Icons.school,
+    Icons.person,
+    Icons.shopping_cart,
+  ];
+
+  Color findMatchingColor(Color color) {
+    return colorOptions.firstWhere(
+      (option) => option.value == color.value,
+      orElse: () => colorOptions[0],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +60,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
       body: SafeArea(
         child: categoryProvider.isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : categoryProvider.categories.isEmpty
                 ? Center(
                     child: Padding(
@@ -47,61 +73,81 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     ),
                   )
                 : GridView.builder(
+                    padding: const EdgeInsets.all(20),
                     itemCount: categoryProvider.categories.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 1,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
                     itemBuilder: (context, index) {
                       final category = categoryProvider.categories[index];
-                      return Container(
-                        margin: const EdgeInsets.all(10),
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: category.categoryColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(category.categoryIcon,
-                                color: Colors.white, size: 40),
-                            SizedBox(height: 10),
-                            Text(
-                              category.categoryName,
-                              style: TextStyle(
-                                fontSize: 23,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              '20 todos', // Placeholder for todo count
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Spacer(),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                ),
-                                IconButton(
-                                    icon:
-                                        Icon(Icons.delete, color: Colors.white),
-                                    onPressed: () {
-                                      _confirmDeleteCategory(
-                                          context, category.id);
-                                    }),
-                              ],
-                            )
-                          ],
-                        ),
-                      );
+                      return _buildCategoryCard(category, context);
                     },
                   ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(CategoryModel category, BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: category.categoryColor,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            category.categoryIcon,
+            color: Colors.white,
+            size: 40,
+          ),
+          const SizedBox(height: 15),
+          Text(
+            category.categoryName,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Text(
+            '0 tasks', // TODO: Replace with actual task count
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white70,
+            ),
+          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () => _showEditCategoryDialog(context, category),
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              InkWell(
+                onTap: () => _confirmDeleteCategory(context, category.id),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -109,172 +155,269 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void _showAddCategoryDialog(BuildContext context) {
     final categoryProvider =
         Provider.of<CategoryProvider>(context, listen: false);
-    TextEditingController categoryNameController = TextEditingController();
-    Color selectedColor = primaryColor;
-    IconData selectedIcon = Icons.category;
+    final categoryNameController = TextEditingController();
+    Color selectedColor = colorOptions[0];
+    IconData selectedIcon = iconOptions[0];
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: primaryColor,
-          title: Center(
-            child: Text(
-              'Add Category',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentColor,
-              ),
-              onPressed: () {
-                if (categoryNameController.text.isNotEmpty) {
-                  categoryProvider.addCategory(
-                    categoryNameController.text,
-                    selectedColor,
-                    selectedIcon,
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: Text('Add', style: TextStyle(color: textColor)),
-            ),
-          ],
-          content: StatefulBuilder(builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomTextFieldInputWithoutPadding(
-                  controller: categoryNameController,
-                  hintText: 'Personal',
-                  icon: Icons.category_outlined,
-                  validator: Validators.validateName,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: primaryColor,
+              title: const Center(
+                child: Text(
+                  'Add Category',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Select Color:',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    CustomTextFieldInputWithoutPadding(
+                      controller: categoryNameController,
+                      hintText: 'Category Name',
+                      icon: Icons.category_outlined,
+                      validator: Validators.validateName,
                     ),
-                    SizedBox(width: 15),
-                    DropdownButton<Color>(
-                      icon: Icon(
-                        Icons.color_lens,
-                        color: Colors.white,
-                      ),
-                      elevation: 0,
-                      underline: Container(),
-                      value: selectedColor,
-                      items: [
-                        primaryColor,
-                        Colors.red,
-                        Colors.green,
-                        Colors.blue,
-                        Colors.deepOrange,
-                        Colors.purple,
-                      ].map((color) {
-                        return DropdownMenuItem<Color>(
-                          value: color,
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            color: color,
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (Color? newColor) {
-                        if (newColor != null) {
-                          setState(() {
-                            selectedColor = newColor;
-                          });
-                        }
-                      },
-                    ),
+                    const SizedBox(height: 20),
+                    _buildColorSelector(selectedColor, (Color? newColor) {
+                      if (newColor != null) {
+                        setState(() => selectedColor = newColor);
+                      }
+                    }),
+                    const SizedBox(height: 20),
+                    _buildIconSelector(selectedIcon, (IconData? newIcon) {
+                      if (newIcon != null) {
+                        setState(() => selectedIcon = newIcon);
+                      }
+                    }),
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Select Icon:',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                    SizedBox(width: 15),
-                    DropdownButton<IconData>(
-                      elevation: 0,
-                      underline: Container(),
-                      value: selectedIcon,
-                      dropdownColor: primaryColor,
-                      items: [
-                        Icons.category,
-                        Icons.work,
-                        Icons.home,
-                        Icons.school,
-                        Icons.shopping_cart,
-                      ].map((icon) {
-                        return DropdownMenuItem<IconData>(
-                          value: icon,
-                          child: Icon(icon, color: Colors.white),
-                        );
-                      }).toList(),
-                      onChanged: (IconData? newIcon) {
-                        if (newIcon != null) {
-                          setState(() {
-                            selectedIcon = newIcon;
-                          });
-                        }
-                      },
-                    ),
-                  ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentColor,
+                  ),
+                  onPressed: () {
+                    if (categoryNameController.text.isNotEmpty) {
+                      categoryProvider.addCategory(
+                        categoryNameController.text,
+                        selectedColor,
+                        selectedIcon,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text('Add', style: TextStyle(color: textColor)),
                 ),
               ],
             );
-          }),
+          },
         );
       },
+    );
+  }
+
+  void _showEditCategoryDialog(BuildContext context, CategoryModel category) {
+    final categoryProvider =
+        Provider.of<CategoryProvider>(context, listen: false);
+    final categoryNameController =
+        TextEditingController(text: category.categoryName);
+    Color selectedColor = findMatchingColor(category.categoryColor);
+    IconData selectedIcon = iconOptions.contains(category.categoryIcon)
+        ? category.categoryIcon
+        : iconOptions[0];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: primaryColor,
+              title: const Center(
+                child: Text(
+                  'Edit Category',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomTextFieldInputWithoutPadding(
+                      controller: categoryNameController,
+                      hintText: 'Category Name',
+                      icon: Icons.category_outlined,
+                      validator: Validators.validateName,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildColorSelector(selectedColor, (Color? newColor) {
+                      if (newColor != null) {
+                        setState(() => selectedColor = newColor);
+                      }
+                    }),
+                    const SizedBox(height: 20),
+                    _buildIconSelector(selectedIcon, (IconData? newIcon) {
+                      if (newIcon != null) {
+                        setState(() => selectedIcon = newIcon);
+                      }
+                    }),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentColor,
+                  ),
+                  onPressed: () {
+                    if (categoryNameController.text.isNotEmpty) {
+                      categoryProvider.updateCategory(
+                        category.id,
+                        categoryNameController.text,
+                        selectedColor,
+                        selectedIcon,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text('Save', style: TextStyle(color: textColor)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildColorSelector(Color currentColor, Function(Color?) onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Select Color:',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        const SizedBox(width: 15),
+        DropdownButton<Color>(
+          icon: const Icon(Icons.color_lens, color: Colors.white),
+          elevation: 0,
+          underline: Container(),
+          value: currentColor,
+          dropdownColor: primaryColor,
+          items: colorOptions.map((Color color) {
+            return DropdownMenuItem<Color>(
+              value: color,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: color,
+                  border: Border.all(color: Colors.white, width: 1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconSelector(
+      IconData currentIcon, Function(IconData?) onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Select Icon:',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        const SizedBox(width: 15),
+        DropdownButton<IconData>(
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          elevation: 0,
+          underline: Container(),
+          value: currentIcon,
+          dropdownColor: primaryColor,
+          items: iconOptions.map((IconData icon) {
+            return DropdownMenuItem<IconData>(
+              value: icon,
+              child: Icon(icon, color: Colors.white),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 
   void _confirmDeleteCategory(BuildContext context, String categoryId) {
     final categoryProvider =
         Provider.of<CategoryProvider>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Category'),
-          content: Text('Are you sure you want to delete this category?'),
+          backgroundColor: primaryColor,
+          title: const Text(
+            'Delete Category',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'Are you sure you want to delete this category?',
+            style: TextStyle(color: Colors.white),
+          ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
               onPressed: () {
                 categoryProvider.deleteCategory(categoryId);
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.pop(context);
               },
-              child: Text('Delete'),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );

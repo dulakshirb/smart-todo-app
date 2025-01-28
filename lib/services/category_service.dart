@@ -52,4 +52,22 @@ class CategoryService {
           .delete();
     }
   }
+
+  // Update a category
+  Future<void> updateCategory(String categoryId, String categoryName,
+      Color categoryColor, IconData categoryIcon) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('categories')
+          .doc(categoryId)
+          .update({
+        'categoryName': categoryName,
+        'categoryColor': categoryColor.value,
+        'categoryIcon': categoryIcon.codePoint
+      });
+    }
+  }
 }
