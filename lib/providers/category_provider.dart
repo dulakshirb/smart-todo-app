@@ -35,4 +35,10 @@ class CategoryProvider extends ChangeNotifier {
     await loadCategories();
     notifyListeners();
   }
+
+  Future<void> deleteCategory(String categoryId) async {
+    await _categoryService.deleteCategory(categoryId);
+    await loadCategories();
+    notifyListeners();
+  }
 }

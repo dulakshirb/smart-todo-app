@@ -39,4 +39,17 @@ class CategoryService {
     }
     return [];
   }
+
+  // Delete a category
+  Future<void> deleteCategory(String categoryId) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('categories')
+          .doc(categoryId)
+          .delete();
+    }
+  }
 }

@@ -35,60 +35,73 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       body: SafeArea(
         child: categoryProvider.isLoading
             ? Center(child: CircularProgressIndicator())
-            : GridView.builder(
-                itemCount: categoryProvider.categories.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2),
-                itemBuilder: (context, index) {
-                  final category = categoryProvider.categories[index];
-                  return Container(
-                    margin: const EdgeInsets.all(10),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: category.categoryColor,
-                      borderRadius: BorderRadius.circular(10),
+            : categoryProvider.categories.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        'No categories available. Please add a new category.',
+                        style: TextStyle(color: textColor, fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(category.categoryIcon,
-                            color: Colors.white, size: 50),
-                        SizedBox(height: 10),
-                        Text(
-                          category.categoryName,
-                          style: TextStyle(
-                            fontSize: 23,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                  )
+                : GridView.builder(
+                    itemCount: categoryProvider.categories.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2),
+                    itemBuilder: (context, index) {
+                      final category = categoryProvider.categories[index];
+                      return Container(
+                        margin: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: category.categoryColor,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        Text(
-                          '20 todos', // Placeholder for todo count
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.edit,
-                              color: Colors.white,
+                            Icon(category.categoryIcon,
+                                color: Colors.white, size: 40),
+                            SizedBox(height: 10),
+                            Text(
+                              category.categoryName,
+                              style: TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                            SizedBox(width: 10),
-                            Icon(
-                              Icons.delete,
-                              color: Colors.white,
+                            Text(
+                              '20 todos', // Placeholder for todo count
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
                             ),
+                            Spacer(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                ),
+                                IconButton(
+                                    icon:
+                                        Icon(Icons.delete, color: Colors.white),
+                                    onPressed: () {
+                                      _confirmDeleteCategory(
+                                          context, category.id);
+                                    }),
+                              ],
+                            )
                           ],
-                        )
-                      ],
-                    ),
-                  );
-                },
-              ),
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }
@@ -98,7 +111,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         Provider.of<CategoryProvider>(context, listen: false);
     TextEditingController categoryNameController = TextEditingController();
     Color selectedColor = primaryColor;
-    IconData selectedIcon = Icons.category; // Default icon
+    IconData selectedIcon = Icons.category;
 
     showDialog(
       context: context,
@@ -235,6 +248,35 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ],
             );
           }),
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteCategory(BuildContext context, String categoryId) {
+    final categoryProvider =
+        Provider.of<CategoryProvider>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Category'),
+          content: Text('Are you sure you want to delete this category?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                categoryProvider.deleteCategory(categoryId);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Delete'),
+            ),
+          ],
         );
       },
     );
