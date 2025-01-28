@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_todo_app/screens/main/categories_screen.dart';
 import 'package:smart_todo_app/screens/main/home_content_screen.dart';
 import 'package:smart_todo_app/screens/main/profile_screen.dart';
 import 'package:smart_todo_app/utils/colors.dart';
@@ -16,10 +17,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const HomeContentScreen(),
+    const CategoriesScreen(),
     const ProfileScreen(),
   ];
 
-  final List<String> _appBarTitles = ['Home', 'Profile'];
+  final List<String> _appBarTitles = ['Home', 'Categories', 'Profile'];
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
@@ -40,6 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category),
+            label: 'Categories',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

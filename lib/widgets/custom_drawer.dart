@@ -40,9 +40,14 @@ class CustomDrawer extends StatelessWidget {
                 onTap: () => _handleItemSelection(context, 0),
               ),
               _buildDrawerItem(
+                icon: Icons.category,
+                title: 'Categories',
+                onTap: () => _handleItemSelection(context, 1),
+              ),
+              _buildDrawerItem(
                 icon: Icons.person,
                 title: 'Profile',
-                onTap: () => _handleItemSelection(context, 1),
+                onTap: () => _handleItemSelection(context, 2),
               ),
               const Divider(),
               _buildDrawerItem(
