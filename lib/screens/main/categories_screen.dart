@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_todo_app/models/category_model.dart';
 import 'package:smart_todo_app/providers/category_provider.dart';
+import 'package:smart_todo_app/providers/task_provider.dart';
+import 'package:smart_todo_app/screens/main/task_screen.dart';
 import 'package:smart_todo_app/utils/colors.dart';
 import 'package:smart_todo_app/utils/validators.dart';
 import 'package:smart_todo_app/widgets/custom_text_field_without_padding.dart';
@@ -72,83 +74,107 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       ),
                     ),
                   )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: categoryProvider.categories.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 1,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
+                : SingleChildScrollView(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: categoryProvider.categories.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemBuilder: (context, index) {
+                        final category = categoryProvider.categories[index];
+                        return _buildCategoryCard(category, context);
+                      },
+                      shrinkWrap: true,
                     ),
-                    itemBuilder: (context, index) {
-                      final category = categoryProvider.categories[index];
-                      return _buildCategoryCard(category, context);
-                    },
                   ),
       ),
     );
   }
 
   Widget _buildCategoryCard(CategoryModel category, BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: category.categoryColor,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            category.categoryIcon,
-            color: Colors.white,
-            size: 40,
-          ),
-          const SizedBox(height: 15),
-          Text(
-            category.categoryName,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const Text(
-            '0 tasks', // TODO: Replace with actual task count
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              InkWell(
-                onTap: () => _showEditCategoryDialog(context, category),
-                child: Icon(
-                  Icons.edit,
-                  color: Colors.white,
+    return Consumer<TaskProvider>(
+      builder: (context, taskProvider, child) {
+        return FutureBuilder<int>(
+          future: taskProvider.getTaskCount(category.id),
+          builder: (context, snapshot) {
+            final taskCount = snapshot.data ?? 0;
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TaskScreen(categoryId: category.id),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: category.categoryColor,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      category.categoryIcon,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      category.categoryName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      '$taskCount tasks',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        InkWell(
+                          onTap: () =>
+                              _showEditCategoryDialog(context, category),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        InkWell(
+                          onTap: () =>
+                              _confirmDeleteCategory(context, category.id),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(
-                width: 10,
-              ),
-              InkWell(
-                onTap: () => _confirmDeleteCategory(context, category.id),
-                child: Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_todo_app/providers/category_provider.dart';
+import 'package:smart_todo_app/providers/task_provider.dart';
 import 'package:smart_todo_app/screens/auth/auth_screen.dart';
 import 'package:smart_todo_app/screens/home_screen.dart';
 import 'services/auth_service.dart';
@@ -15,6 +16,7 @@ void main() async {
       providers: [
         Provider<AuthService>(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
       ],
       child: const MyApp(),
     ),
