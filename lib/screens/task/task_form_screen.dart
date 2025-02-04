@@ -6,6 +6,7 @@ import 'package:dd_smart_todo_app/providers/task_provider.dart';
 import 'package:dd_smart_todo_app/utils/constants.dart';
 import 'package:dd_smart_todo_app/utils/date_utils.dart';
 import 'package:dd_smart_todo_app/widgets/custom_button.dart';
+import 'package:dd_smart_todo_app/widgets/custom_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -334,14 +335,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _PriorityChip(
+                      CustomChip(
                         label: 'Low',
                         isSelected: _selectedPriority == 'low',
                         onTap: () => setState(() => _selectedPriority = 'low'),
                         color: Colors.green,
                       ),
                       const SizedBox(width: 8),
-                      _PriorityChip(
+                      CustomChip(
                         label: 'Medium',
                         isSelected: _selectedPriority == 'medium',
                         onTap: () =>
@@ -349,7 +350,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         color: Colors.orange,
                       ),
                       const SizedBox(width: 8),
-                      _PriorityChip(
+                      CustomChip(
                         label: 'High',
                         isSelected: _selectedPriority == 'high',
                         onTap: () => setState(() => _selectedPriority = 'high'),
@@ -415,45 +416,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               isLoading: _isLoading,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PriorityChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final Color color;
-
-  const _PriorityChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.2) : Colors.transparent,
-          border: Border.all(color: color),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
         ),
       ),
     );
