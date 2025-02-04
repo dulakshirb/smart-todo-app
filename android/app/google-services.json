@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "158841850234",
+    "project_id": "dd-smart-todo-app",
+    "storage_bucket": "dd-smart-todo-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:158841850234:android:9da9a0fc8efbd4db23aec3",
+        "android_client_info": {
+          "package_name": "com.example.dd_smart_todo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNwdflPl6_Spc2NfT81K92XwvGbSMWJh4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
