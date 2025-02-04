@@ -152,37 +152,50 @@ class _NotificationSettingsScreenState
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () async {
-                await NotificationService().showDebugNotification(
-                  title: 'Test Notification',
-                  body: 'This is an immediate test notification',
-                );
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Test notification sent'),
-                    ),
+                try {
+                  final now = DateTime.now();
+                  // Schedule for 1 minute from now
+                  final scheduledTime = now.add(const Duration(minutes: 1));
+
+                  print('Scheduling test notification:');
+                  print('Current time: ${now.toString()}');
+                  print('Scheduled for: ${scheduledTime.toString()}');
+
+                  await NotificationService().scheduleTaskReminder(
+                    taskId: 'test_task_${now.millisecondsSinceEpoch}',
+                    title: 'Test Scheduled Task',
+                    description: 'This is a test scheduled notification',
+                    dueDate:
+                        scheduledTime, // Use scheduledTime directly as dueDate
                   );
-                }
-              },
-              child: const Text('Send Test Notification'),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () async {
-                final now = DateTime.now();
-                await NotificationService().scheduleTaskReminder(
-                  taskId: 'test_task',
-                  title: 'Test Scheduled Task',
-                  description: 'This is a test scheduled notification',
-                  dueDate: now.add(const Duration(minutes: 1)),
-                );
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Test notification scheduled for 1 minute from now'),
-                    ),
-                  );
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Notification scheduled'),
+                            Text('Current time: ${now.toString()}'),
+                            Text('Scheduled for: ${scheduledTime.toString()}'),
+                          ],
+                        ),
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print('Error scheduling test notification: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error scheduling notification: $e'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
                 }
               },
               child: const Text('Schedule Test Notification (1 min)'),

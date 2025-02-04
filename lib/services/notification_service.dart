@@ -1,4 +1,3 @@
-// lib/services/notification_service.dart
 import 'dart:io' show Platform;
 import 'dart:convert';
 
@@ -68,7 +67,6 @@ class NotificationService {
       provisional: false,
     );
 
-    // Request local notification permissions for iOS
     if (Platform.isIOS) {
       await _localNotifications
           .resolvePlatformSpecificImplementation<
@@ -78,14 +76,13 @@ class NotificationService {
             badge: true,
             sound: true,
           );
-    }
-
-    // Request precise alarms permission for Android
-    if (Platform.isAndroid) {
-      final androidImpl =
+    } else if (Platform.isAndroid) {
+      final androidImplementation =
           _localNotifications.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
-      await androidImpl?.requestNotificationsPermission();
+
+      final granted = await androidImplementation?.areNotificationsEnabled();
+      print('Android notification permission status: $granted');
     }
   }
 
@@ -134,78 +131,124 @@ class NotificationService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final isEnabled = prefs.getBool('taskReminders') ?? true;
+      final dueDateAlertsEnabled = prefs.getBool('dueDateAlerts') ?? true;
       final reminderHours = prefs.getInt('reminderTime') ?? 1;
 
-      if (!isEnabled) {
-        print('Task reminders are disabled');
+      if (!isEnabled && !dueDateAlertsEnabled) {
+        print('All notifications are disabled');
         return;
       }
 
-      final scheduledDate = dueDate.subtract(Duration(hours: reminderHours));
+      final hasPermission = await checkPermissions();
+      if (!hasPermission) {
+        print('Notification permissions not granted');
+        return;
+      }
+
       final now = DateTime.now();
+      print('Scheduling notifications for task: $title');
+      print('Current time: ${now.toString()}');
+      print('Due date: ${dueDate.toString()}');
 
-      // Don't schedule if the time has already passed
-      if (scheduledDate.isBefore(now)) {
-        print('Skipping notification for past due task: $title');
-        print('Scheduled time: ${DateTimeUtils.formatDateTime(scheduledDate)}');
-        print('Current time: ${DateTimeUtils.formatDateTime(now)}');
-        return;
+      // Schedule reminder notification
+      if (isEnabled) {
+        final reminderDate = dueDate.subtract(Duration(hours: reminderHours));
+        if (reminderDate.isAfter(now)) {
+          await _scheduleNotification(
+            id: '${taskId}_reminder'.hashCode,
+            title: 'Task Reminder',
+            body:
+                'Task "$title" is due in $reminderHours ${reminderHours == 1 ? 'hour' : 'hours'}',
+            description: description,
+            scheduledDate: reminderDate,
+            payload: {
+              'taskId': taskId,
+              'title': title,
+              'dueDate': DateTimeUtils.formatDateTime(dueDate),
+              'type': 'reminder',
+            },
+          );
+          print(
+              'Reminder notification scheduled for: ${reminderDate.toString()}');
+        }
       }
 
-      // Convert to local timezone
-      final scheduledTz = tz.TZDateTime.from(scheduledDate, tz.local);
-
-      final payload = {
-        'taskId': taskId,
-        'title': title,
-        'dueDate': DateTimeUtils.formatDateTime(dueDate),
-        'type': 'task_reminder',
-      };
-
-      print('Scheduling notification for task: $title');
-      print('Due date: ${DateTimeUtils.formatDateTime(dueDate)}');
-      print('Scheduled for: ${DateTimeUtils.formatDateTime(scheduledDate)}');
-
-      await _localNotifications.zonedSchedule(
-        taskId.hashCode,
-        'Task Reminder',
-        'Task "$title" is due in $reminderHours ${reminderHours == 1 ? 'hour' : 'hours'}',
-        scheduledTz,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            _taskChannelId,
-            _taskChannelName,
-            channelDescription: _taskChannelDescription,
-            importance: Importance.high,
-            priority: Priority.high,
-            ticker: 'Task Reminder',
-            styleInformation: BigTextStyleInformation(
-              description,
-              contentTitle: title,
-              summaryText: 'Due: ${DateTimeUtils.formatDateTime(dueDate)}',
-            ),
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            sound: 'default',
-            badgeNumber: 1,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        payload: json.encode(payload),
-      );
-
-      print('Notification scheduled successfully');
-    } catch (e) {
-      print('Error scheduling notification: $e');
-      print('Task ID: $taskId');
-      print('Title: $title');
-      print('Due date: ${DateTimeUtils.formatDateTime(dueDate)}');
+      // Schedule due date notification
+      if (dueDateAlertsEnabled) {
+        if (dueDate.isAfter(now)) {
+          await _scheduleNotification(
+            id: '${taskId}_due'.hashCode,
+            title: 'Task Due',
+            body: 'Task "$title" is due now',
+            description: description,
+            scheduledDate: dueDate,
+            payload: {
+              'taskId': taskId,
+              'title': title,
+              'dueDate': DateTimeUtils.formatDateTime(dueDate),
+              'type': 'due_date',
+            },
+          );
+          print('Due date notification scheduled for: ${dueDate.toString()}');
+        }
+      }
+    } catch (e, stackTrace) {
+      print('Error scheduling notifications: $e');
+      print('Stack trace: $stackTrace');
     }
+  }
+
+  Future<void> _scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required String description,
+    required DateTime scheduledDate,
+    required Map<String, dynamic> payload,
+  }) async {
+    final location = tz.local;
+    final scheduledTz = tz.TZDateTime.from(scheduledDate, location);
+
+    print('Scheduling notification:');
+    print('ID: $id');
+    print('Title: $title');
+    print('Scheduled for: ${scheduledDate.toString()}');
+    print('Timezone: ${location.name}');
+
+    await _localNotifications.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduledTz,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _taskChannelId,
+          _taskChannelName,
+          channelDescription: _taskChannelDescription,
+          importance: Importance.high,
+          priority: Priority.high,
+          styleInformation: BigTextStyleInformation(
+            description,
+            contentTitle: title,
+            summaryText: 'Due: ${DateTimeUtils.formatDateTime(scheduledDate)}',
+          ),
+          fullScreenIntent: true,
+          category: AndroidNotificationCategory.reminder,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: 'default',
+          badgeNumber: 1,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: json.encode(payload),
+    );
   }
 
   Future<void> _showLocalNotification({
@@ -236,11 +279,12 @@ class NotificationService {
   }
 
   Future<void> cancelTaskReminder(String taskId) async {
-    await _localNotifications.cancel(taskId.hashCode);
+    await _localNotifications.cancel('${taskId}_reminder'.hashCode);
+    await _localNotifications.cancel('${taskId}_due'.hashCode);
+    print('Cancelled notifications for task: $taskId');
   }
 
   Future<void> _setupNotificationTapHandling() async {
-    // Get any initial notification that launched the app
     final initialNotification =
         await _localNotifications.getNotificationAppLaunchDetails();
     if (initialNotification?.didNotificationLaunchApp ?? false) {
@@ -262,6 +306,7 @@ class NotificationService {
         final data = json.decode(response.payload!);
         print('Notification payload data: $data');
         // TODO: Implement navigation based on payload
+        // Navigate to task detail screen using the taskId from payload
       } catch (e) {
         print('Error parsing notification payload: $e');
       }
@@ -278,13 +323,50 @@ class NotificationService {
     await prefs.setBool('dueDateAlerts', dueDateAlerts);
     await prefs.setInt('reminderTime', reminderTime);
 
-    // Cancel all notifications if reminders are disabled
-    if (!taskReminders) {
+    print('Updated notification settings:');
+    print('Task reminders enabled: $taskReminders');
+    print('Due date alerts enabled: $dueDateAlerts');
+    print('Reminder time: $reminderTime hours');
+
+    // Cancel all notifications if all reminders are disabled
+    if (!taskReminders && !dueDateAlerts) {
       await _localNotifications.cancelAll();
+      print('Cancelled all notifications due to settings update');
     }
   }
 
-  // Debug method to show an immediate test notification
+  Future<bool> checkPermissions() async {
+    try {
+      if (Platform.isAndroid) {
+        final androidImplementation =
+            _localNotifications.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+
+        final areNotificationsEnabled =
+            await androidImplementation?.areNotificationsEnabled();
+        print('Android notifications enabled: $areNotificationsEnabled');
+        return areNotificationsEnabled ?? false;
+      } else if (Platform.isIOS) {
+        final iosImplementation =
+            _localNotifications.resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>();
+        final granted = await iosImplementation?.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
+            false;
+        print('iOS notification permissions granted: $granted');
+        return granted;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking notification permissions: $e');
+      return false;
+    }
+  }
+
+  // Debug method for testing
   Future<void> showDebugNotification({
     required String title,
     required String body,
@@ -302,44 +384,12 @@ class NotificationService {
     print('Showing debug notification: $title');
   }
 
-  // Method to check notification permissions
-  Future<bool> checkPermissions() async {
-    try {
-      if (Platform.isAndroid) {
-        final androidImpl =
-            _localNotifications.resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>();
-        final granted =
-            await androidImpl?.requestNotificationsPermission() ?? false;
-        print('Android notification permissions granted: $granted');
-        return granted;
-      } else if (Platform.isIOS) {
-        final iosImpl =
-            _localNotifications.resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>();
-        final granted = await iosImpl?.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            ) ??
-            false;
-        print('iOS notification permissions granted: $granted');
-        return granted;
-      }
-      return false;
-    } catch (e) {
-      print('Error checking notification permissions: $e');
-      return false;
-    }
-  }
-
-  // Method to cancel all notifications
   Future<void> cancelAllNotifications() async {
     await _localNotifications.cancelAll();
+    print('Cancelled all notifications');
   }
 }
 
-// Top-level function for background message handling
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('Handling background message: ${message.messageId}');
