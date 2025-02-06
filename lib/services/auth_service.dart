@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dd_smart_todo_app/services/profile_delete_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
@@ -7,8 +8,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final ProfileDeleteService _profileDeleteService = ProfileDeleteService();
 
-  // Get current user
   Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -20,7 +21,6 @@ class AuthService {
     return null;
   }
 
-  // Sign in with email and password
   Future<UserModel?> signInWithEmailAndPassword(
     String email,
     String password,
@@ -33,7 +33,6 @@ class AuthService {
 
       final user = userCredential.user;
       if (user != null) {
-        // Update last login
         await _firestore.collection('users').doc(user.uid).update({
           'lastLogin': DateTime.now().toUtc().toString(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -48,7 +47,6 @@ class AuthService {
     }
   }
 
-  // Sign up with email and password
   Future<UserModel?> signUpWithEmailAndPassword(
     String name,
     String email,
@@ -62,7 +60,6 @@ class AuthService {
 
       final user = userCredential.user;
       if (user != null) {
-        // Create user document in Firestore
         final userData = {
           'id': user.uid,
           'email': email,
@@ -85,7 +82,6 @@ class AuthService {
     }
   }
 
-  // Sign in with Google
   Future<UserModel?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -133,7 +129,6 @@ class AuthService {
     }
   }
 
-  // Sign out
   Future<void> signOut() async {
     try {
       await Future.wait([
@@ -146,25 +141,21 @@ class AuthService {
     }
   }
 
-  // Update user profile
   Future<UserModel?> updateProfile({
     required String userId,
     required String displayName,
   }) async {
     try {
-      // Update Firebase Auth display name
       final currentUser = _auth.currentUser;
       if (currentUser != null) {
         await currentUser.updateDisplayName(displayName);
       }
 
-      // Update Firestore user document
       await _firestore.collection('users').doc(userId).update({
         'displayName': displayName,
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // Return updated user
       return getCurrentUser();
     } catch (e) {
       print('Error updating profile: $e');
@@ -172,6 +163,53 @@ class AuthService {
     }
   }
 
-  // Get auth state changes
+  Future<void> deleteProfile({required String userId}) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+
+      // Check if user needs to be re-authenticated
+      try {
+        // Try to get user reauthenticated if using Google
+        if (await _googleSignIn.isSignedIn()) {
+          final googleUser = await _googleSignIn.signIn();
+          if (googleUser != null) {
+            final googleAuth = await googleUser.authentication;
+            final credential = GoogleAuthProvider.credential(
+              accessToken: googleAuth.accessToken,
+              idToken: googleAuth.idToken,
+            );
+            await user.reauthenticateWithCredential(credential);
+          }
+        }
+
+        // Delete all user data first
+        await _profileDeleteService.deleteUserData(userId);
+
+        // Then delete the Firebase Auth user
+        await user.delete();
+
+        // Finally, sign out from Google if applicable
+        if (await _googleSignIn.isSignedIn()) {
+          await _googleSignIn.signOut();
+        }
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          throw FirebaseAuthException(
+            code: 'requires-recent-login',
+            message:
+                'Please sign in again to delete your account for security reasons.',
+          );
+        }
+        rethrow;
+      }
+    } catch (e) {
+      print('Error in AuthService.deleteProfile: $e');
+      rethrow;
+    }
+  }
+
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 }

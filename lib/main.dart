@@ -10,7 +10,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'firebase_options.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -59,6 +58,7 @@ class MyApp extends StatelessWidget {
               }
 
               return MaterialApp(
+                debugShowCheckedModeBanner: false,
                 title: 'Smart Todo',
                 theme: AppTheme.darakTheme,
                 home: const AuthWrapper(),

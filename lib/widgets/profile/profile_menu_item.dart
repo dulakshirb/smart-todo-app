@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class ProfileMenuItem extends StatelessWidget {
@@ -6,6 +5,7 @@ class ProfileMenuItem extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
   final Color? color;
+  final bool enabled;
 
   const ProfileMenuItem({
     super.key,
@@ -13,23 +13,26 @@ class ProfileMenuItem extends StatelessWidget {
     required this.title,
     required this.onTap,
     this.color,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.5,
       child: ListTile(
-        leading: Icon(icon, color: color),
+        onTap: enabled ? onTap : null,
+        leading: Icon(
+          icon,
+          color: color,
+        ),
         title: Text(
           title,
           style: TextStyle(
             color: color,
-            fontWeight: FontWeight.w500,
           ),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
       ),
     );
   }
