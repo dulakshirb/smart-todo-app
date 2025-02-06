@@ -305,8 +305,7 @@ class NotificationService {
       try {
         final data = json.decode(response.payload!);
         print('Notification payload data: $data');
-        // TODO: Implement navigation based on payload
-        // Navigate to task detail screen using the taskId from payload
+
       } catch (e) {
         print('Error parsing notification payload: $e');
       }
@@ -366,7 +365,7 @@ class NotificationService {
     }
   }
 
-  // Debug method for testing
+  // For testing
   Future<void> showDebugNotification({
     required String title,
     required String body,

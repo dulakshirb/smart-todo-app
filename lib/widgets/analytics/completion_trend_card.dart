@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dd_smart_todo_app/providers/task_provider.dart';
@@ -13,7 +12,7 @@ class CompletionTrendChart extends StatelessWidget {
     final completionData = _getCompletionData(taskProvider);
 
     return AspectRatio(
-      aspectRatio: 1.7,
+      aspectRatio: 1.5,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16),

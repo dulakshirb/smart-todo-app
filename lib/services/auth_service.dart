@@ -172,7 +172,6 @@ class AuthService {
 
       // Check if user needs to be re-authenticated
       try {
-        // Try to get user reauthenticated if using Google
         if (await _googleSignIn.isSignedIn()) {
           final googleUser = await _googleSignIn.signIn();
           if (googleUser != null) {
@@ -188,10 +187,10 @@ class AuthService {
         // Delete all user data first
         await _profileDeleteService.deleteUserData(userId);
 
-        // Then delete the Firebase Auth user
+        // Delete the Firebase Auth user
         await user.delete();
 
-        // Finally, sign out from Google if applicable
+        // Sign out from Google 
         if (await _googleSignIn.isSignedIn()) {
           await _googleSignIn.signOut();
         }

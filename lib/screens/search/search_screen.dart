@@ -2,7 +2,7 @@ import 'package:dd_smart_todo_app/models/task_model.dart';
 import 'package:dd_smart_todo_app/providers/category_provider.dart';
 import 'package:dd_smart_todo_app/providers/task_provider.dart';
 import 'package:dd_smart_todo_app/utils/constants.dart';
-import 'package:dd_smart_todo_app/widgets/task_card.dart'; // Add this import
+import 'package:dd_smart_todo_app/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,4 +1,3 @@
-// lib/services/cleanup_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileDeleteService {
@@ -6,7 +5,7 @@ class ProfileDeleteService {
 
 
   Future<void> deleteUserData(String userId) async {
-    // Use a batch to ensure atomic operations
+
     WriteBatch batch = _firestore.batch();
 
     try {
@@ -31,7 +30,6 @@ class ProfileDeleteService {
       // Delete user document
       batch.delete(_firestore.collection('users').doc(userId));
 
-      // Commit the batch
       await batch.commit();
     } catch (e) {
       print('Error deleting user data: $e');

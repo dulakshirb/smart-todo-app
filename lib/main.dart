@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
 
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
-                title: 'Smart Todo',
+                title: 'Smart Todo App',
                 theme: AppTheme.darakTheme,
                 home: const AuthWrapper(),
               );

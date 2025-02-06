@@ -15,10 +15,8 @@ class CategoryDistributionChart extends StatelessWidget {
     final categoryProvider = context.watch<CategoryProvider>();
     final authProvider = context.watch<AuthProvider>();
 
-    // Get current user ID
     final userId = authProvider.currentUser?.id ?? '';
 
-    // Early return if no tasks or no categories
     if (taskProvider.tasks.isEmpty) {
       return _buildEmptyState('No tasks available');
     }
@@ -45,12 +43,10 @@ class CategoryDistributionChart extends StatelessWidget {
         categoryData[task.categoryId]!['count'] =
             (categoryData[task.categoryId]!['count'] as int) + 1;
       } else {
-        // Count uncategorized tasks
         uncategorizedCount++;
       }
     }
-
-    // Add uncategorized to the map if there are any
+    
     if (uncategorizedCount > 0) {
       final uncategorized = Constants.getUncategorizedCategory(userId);
       categoryData['uncategorized'] = {
@@ -66,11 +62,11 @@ class CategoryDistributionChart extends StatelessWidget {
     );
 
     if (activeCategoryData.isEmpty) {
-      return _buildEmptyState('No task distribution data available');
+      return _buildEmptyState('No task data available');
     }
 
     return AspectRatio(
-      aspectRatio: 1,
+      aspectRatio: 0.8,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16),

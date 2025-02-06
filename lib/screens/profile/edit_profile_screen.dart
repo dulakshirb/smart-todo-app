@@ -12,7 +12,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  bool _isLoading = false; // Add this line to define _isLoading
+  bool _isLoading = false; 
 
   @override
   void initState() {
@@ -42,7 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: [
                 TextFormField(
                   controller: _nameController,
-                  enabled: !_isLoading, // Disable during loading
+                  enabled: !_isLoading, 
                   decoration: const InputDecoration(
                     labelText: 'Name',
                     border: OutlineInputBorder(),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:dd_smart_todo_app/models/user_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';

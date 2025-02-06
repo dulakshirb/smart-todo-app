@@ -44,7 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
 
       if (e.code == 'requires-recent-login') {
-        // Show reauth message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please sign in again to delete your account.'),
@@ -52,7 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
 
-        // Sign out to force re-authentication
         await context.read<AuthProvider>().signOut();
 
         if (!mounted) return;

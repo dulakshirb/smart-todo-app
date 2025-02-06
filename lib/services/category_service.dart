@@ -84,7 +84,6 @@ class CategoryService {
       // Delete the category
       batch.delete(_firestore.collection(_collection).doc(categoryId));
 
-      // Commit the batch
       await batch.commit();
     } catch (e) {
       print('Error deleting category: $e');

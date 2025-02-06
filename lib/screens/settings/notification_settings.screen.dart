@@ -147,7 +147,7 @@ class _NotificationSettingsScreenState
           SizedBox(
             height: 20,
           ),
-          // Add test buttons at the bottom
+
           if (_hasPermission) ...[
             const SizedBox(height: 24),
             ElevatedButton(
@@ -166,7 +166,7 @@ class _NotificationSettingsScreenState
                     title: 'Test Scheduled Task',
                     description: 'This is a test scheduled notification',
                     dueDate:
-                        scheduledTime, // Use scheduledTime directly as dueDate
+                        scheduledTime, 
                   );
 
                   if (mounted) {
